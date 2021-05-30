@@ -1,11 +1,13 @@
+from io import StringIO
 from flask import Flask, request, jsonify
 import numpy as np
 import cv2 as cv
 import base64
+from PIL import Image
+
 
 app = Flask(__name__)
 # app.config["DEBUG"] = True
-
 
 
 books = [
@@ -45,15 +47,20 @@ def testPost():
     else:
         return "Error en el formato"
 
-@app.route("/opencv", methods=['GET', "POST"])
-def testPost():
-    if request.method == "POST":
-        aux = request.form["img"]
-        img_decode = base64.b64decode(aux)
-        image_result = open("./data/img.jpeg", "wb")
-        image_result.write(img_decode)
 
-        img = cv.imread("./data/img.jpeg")
+@app.route("/opencv", methods=['GET', "POST"])
+def openCv():
+    if request.method == "POST":
+    
+        aux = request.form["img"]
+        if not aux:
+            return "Error"
+        # return aux    
+        cnt = 0
+
+        decoded_data = base64.b64decode(aux)
+        np_data = np.frombuffer(decoded_data, dtype=np.uint8)
+        img = cv.imdecode(np_data, cv.IMREAD_COLOR)
 
         hsvim = cv.cvtColor(img, cv.COLOR_BGR2HSV)
         lower = np.array([0, 48, 80], dtype="uint8")
@@ -90,10 +97,10 @@ def testPost():
         cv.putText(img, str(cnt), (0, 50), cv.FONT_HERSHEY_SIMPLEX,
                 1, (255, 0, 0), 2, cv.LINE_AA)
 
-        return cnt
+        return jsonify({"fingers" : cnt})
+        # return "Exito"
     else:
         return "Error en el formato"
-
 
 
 @app.route("/api/v1/resources/books", methods=['GET'])
