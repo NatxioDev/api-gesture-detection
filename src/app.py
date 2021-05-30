@@ -1,9 +1,8 @@
-from io import StringIO
+
 from flask import Flask, request, jsonify
 import numpy as np
 import cv2 as cv
 import base64
-from PIL import Image
 
 
 app = Flask(__name__)
@@ -51,11 +50,11 @@ def testPost():
 @app.route("/opencv", methods=['GET', "POST"])
 def openCv():
     if request.method == "POST":
-    
+
         aux = request.form["img"]
         if not aux:
             return "Error"
-        # return aux    
+        # return aux
         cnt = 0
 
         decoded_data = base64.b64decode(aux)
@@ -88,16 +87,16 @@ def openCv():
             b = np.sqrt((far[0] - start[0]) ** 2 + (far[1] - start[1]) ** 2)
             c = np.sqrt((end[0] - far[0]) ** 2 + (end[1] - far[1]) ** 2)
             angle = np.arccos((b ** 2 + c ** 2 - a ** 2) /
-                            (2 * b * c))
+                              (2 * b * c))
             if angle <= np.pi / 2:
                 cnt += 1
                 cv.circle(img, far, 4, [0, 0, 255], -1)
         if cnt > 0:
             cnt = cnt+1
         cv.putText(img, str(cnt), (0, 50), cv.FONT_HERSHEY_SIMPLEX,
-                1, (255, 0, 0), 2, cv.LINE_AA)
+                   1, (255, 0, 0), 2, cv.LINE_AA)
 
-        return jsonify({"fingers" : cnt})
+        return jsonify({"fingers": cnt})
         # return "Exito"
     else:
         return "Error en el formato"
