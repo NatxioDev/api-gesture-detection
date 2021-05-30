@@ -24,12 +24,19 @@ books = [
 
 @app.route('/', methods=['GET'])
 def home():
-    return "<h1>Hola Mundo</h1>"
+    return "<h1>Hola Mundo con POST</h1>"
 
 
 @app.route("/api/v1/resources/books/all", methods=['GET'])
 def api_all():
     return jsonify(books)
+
+
+@app.route("/test", methods=['GET', "POST"])
+def testPost():
+    if request.method == "POST":
+        aux = request.form["img"]
+        return aux + " Con Exito"
 
 
 @app.route("/api/v1/resources/books", methods=['GET'])
