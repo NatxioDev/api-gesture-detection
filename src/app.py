@@ -3,7 +3,11 @@ from flask import Flask, request, jsonify
 import numpy as np
 import cv2 as cv
 import base64
-
+import tensorflow.keras
+from PIL import Image, ImageOps
+import numpy as np
+import re
+from io import BytesIO
 
 app = Flask(__name__)
 # app.config["DEBUG"] = True
@@ -54,7 +58,6 @@ def openCv():
         aux = request.form["img"]
         if not aux:
             return "Error"
-        # return aux
         cnt = 0
 
         decoded_data = base64.b64decode(aux)
@@ -97,7 +100,6 @@ def openCv():
                    1, (255, 0, 0), 2, cv.LINE_AA)
 
         return jsonify({"fingers": cnt})
-        # return "Exito"
     else:
         return "Error en el formato"
 
@@ -115,6 +117,32 @@ def api_filter():
         if book["id"] == id:
             results.append(book)
     return jsonify(results)
+
+
+@app.route("/gesture", methods=['GET', "POST"])
+def getGesture():
+
+    aux = request.form["img"]
+    if not aux:
+        return "Error"
+
+    base64_data = re.sub("^data:image/.+;base64,", "", aux)
+    byte_data = base64.b64decode(base64_data)
+    image_data = BytesIO(byte_data)
+
+    np.set_printoptions(suppress=True)
+    # model = tensorflow.keras.models.load_model('./keras_model.h5')
+    model = tensorflow.keras.models.load_model('m.h5')
+    data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+    image = Image.open(image_data)
+    size = (224, 224)
+    image = ImageOps.fit(image, size, Image.ANTIALIAS)
+    image_array = np.asarray(image)
+    image.show()
+    normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
+    data[0] = normalized_image_array
+    prediction = model.predict(data)
+    return (prediction.tostring())
 
 
 if __name__ == '__main__':
